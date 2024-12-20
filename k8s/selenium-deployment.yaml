@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-standalone
+  template:
+    metadata:
+      labels:
+        app: selenium-standalone
+    spec:
+      containers:
+      - name: selenium
+        image: selenium/standalone-chrome:latest
+        ports:
+        - containerPort: 4444
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory 

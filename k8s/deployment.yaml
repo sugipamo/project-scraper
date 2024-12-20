@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper
+  labels:
+    app: scraper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scraper
+  template:
+    metadata:
+      labels:
+        app: scraper
+    spec:
+      containers:
+      - name: scraper
+        image: scraper:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: scraper-secrets
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /app/cache
+      volumes:
+      - name: cache-volume
+        persistentVolumeClaim:
+          claimName: scraper-cache-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-standalone
+spec:
+  selector:
+    app: selenium-standalone
+  ports:
+    - protocol: TCP
+      port: 4444
+      targetPort: 4444
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-standalone
+  template:
+    metadata:
+      labels:
+        app: selenium-standalone
+    spec:
+      containers:
+      - name: selenium
+        image: selenium/standalone-chrome:latest
+        ports:
+        - containerPort: 4444
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+          requests:
+            memory: "1Gi"
+            cpu: "0.5"
